@@ -1,0 +1,277 @@
+{
+  "version": "1",
+  "project": "taskflow",
+  "decisions": [
+    {
+      "id": "D-001",
+      "question": "What backend framework should we use?",
+      "status": "closed",
+      "decided_at": "2026-04-01",
+      "notes": "Team evaluated FastAPI vs Django. Django felt too heavy for a simple API — we don't need the admin, ORM migrations are overkill at this stage. FastAPI's async-first model fits our planned architecture. Closed after first endpoint shipped and working in production.",
+      "options": [
+        {
+          "id": "A",
+          "label": "FastAPI",
+          "chosen": true
+        },
+        {
+          "id": "B",
+          "label": "Django REST Framework",
+          "rejected": true,
+          "rejection_reason": "Heavier than needed; team unfamiliar with Django patterns; async support is bolted-on"
+        }
+      ],
+      "chosen_option": "A",
+      "assumptions": [
+        {
+          "id": "A1",
+          "text": "Team is comfortable with Python async/await",
+          "status": "validated",
+          "note": null
+        },
+        {
+          "id": "A2",
+          "text": "We will not need Django admin or built-in auth",
+          "status": "validated",
+          "note": null
+        }
+      ],
+      "affects": [
+        {
+          "scope": "backend/",
+          "coupling": "tight",
+          "note": "All route definitions, middleware, and app startup"
+        }
+      ],
+      "impact_scope": "subsystem",
+      "change_cost": "high",
+      "superseded_by": null,
+      "informed_by": [],
+      "triggered_by": null
+    },
+    {
+      "id": "D-002",
+      "question": "How should we handle user authentication?",
+      "status": "open",
+      "decided_at": "2026-04-03",
+      "notes": "Considered session cookies vs JWT. Chose JWT because frontend is a separate SPA and we may add a mobile client later. Implementation started but token refresh logic not yet complete — keeping open until full auth flow is tested end-to-end.",
+      "options": [
+        {
+          "id": "A",
+          "label": "JWT tokens (access + refresh)",
+          "chosen": true
+        },
+        {
+          "id": "B",
+          "label": "Server-side sessions with cookies",
+          "rejected": true,
+          "rejection_reason": "Requires sticky sessions or shared session store; complicates future mobile client"
+        }
+      ],
+      "chosen_option": "A",
+      "assumptions": [
+        {
+          "id": "A1",
+          "text": "Refresh endpoint will respond fast enough for silent refresh (<300ms p95)",
+          "status": "unvalidated",
+          "note": null
+        },
+        {
+          "id": "A2",
+          "text": "We will not need server-side token invalidation (e.g. forced logout)",
+          "status": "unvalidated",
+          "note": null
+        }
+      ],
+      "affects": [
+        {
+          "scope": "backend/auth/",
+          "coupling": "tight",
+          "note": "Token issuance and validation live here"
+        },
+        {
+          "scope": "backend/middleware/",
+          "coupling": "tight",
+          "note": "Auth middleware validates tokens on every request"
+        },
+        {
+          "scope": "frontend/src/api/",
+          "coupling": "medium",
+          "note": "Axios interceptor handles token refresh"
+        }
+      ],
+      "impact_scope": "api_boundary",
+      "change_cost": "high",
+      "superseded_by": null,
+      "informed_by": ["D-001"],
+      "triggered_by": null
+    },
+    {
+      "id": "D-003",
+      "question": "Should we add a Redis cache layer for task queries?",
+      "status": "challenged",
+      "decided_at": "2026-04-10",
+      "notes": "Initial profiling showed task list query at ~80ms. Added Redis caching targeting <20ms. 2026-05-15: Load testing revealed query latency was actually dominated by network round-trips in the test environment, not the query itself. On real hardware the query runs at ~12ms without cache. The performance assumption was based on flawed test data. Revisiting whether cache adds enough value to justify the operational overhead.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Redis cache with 60s TTL on task list queries",
+          "chosen": true
+        },
+        {
+          "id": "B",
+          "label": "No cache, optimize query with indexes",
+          "rejected": true,
+          "rejection_reason": "Profiling showed indexes alone would not reach <20ms target"
+        }
+      ],
+      "chosen_option": "A",
+      "assumptions": [
+        {
+          "id": "A1",
+          "text": "Task list query is slow enough to justify caching (>50ms without cache)",
+          "status": "invalidated",
+          "invalidated_by": null,
+          "note": "Load test on real hardware showed 12ms without cache. Original measurement was from dev environment with network overhead."
+        },
+        {
+          "id": "A2",
+          "text": "Cache invalidation on task updates is simple enough to implement correctly",
+          "status": "unvalidated",
+          "note": null
+        }
+      ],
+      "affects": [
+        {
+          "scope": "backend/cache/",
+          "coupling": "tight",
+          "note": "Cache logic and invalidation"
+        },
+        {
+          "scope": "backend/services/task_service.py",
+          "coupling": "medium",
+          "note": "Task service calls cache layer before DB"
+        },
+        {
+          "scope": "infrastructure/docker-compose.yml",
+          "coupling": "medium",
+          "note": "Redis container added"
+        }
+      ],
+      "impact_scope": "subsystem",
+      "change_cost": "medium",
+      "superseded_by": null,
+      "informed_by": [],
+      "triggered_by": null
+    },
+    {
+      "id": "D-004",
+      "question": "How should tasks be associated with projects?",
+      "status": "superseded",
+      "decided_at": "2026-04-05",
+      "notes": "Originally used a single project_id FK on the task table — simple and fast to implement. Superseded when product added multi-project tasks as a requirement. See D-005.",
+      "options": [
+        {
+          "id": "A",
+          "label": "Single project_id foreign key on task",
+          "chosen": true
+        },
+        {
+          "id": "B",
+          "label": "Many-to-many join table",
+          "rejected": true,
+          "rejection_reason": "Over-engineered for MVP; product confirmed tasks belong to exactly one project"
+        }
+      ],
+      "chosen_option": "A",
+      "assumptions": [
+        {
+          "id": "A1",
+          "text": "A task belongs to exactly one project",
+          "status": "invalidated",
+          "invalidated_by": "D-005",
+          "note": "Product requirement changed: enterprise users need to tag tasks across multiple projects"
+        }
+      ],
+      "affects": [
+        {
+          "scope": "backend/models/task.py",
+          "coupling": "tight",
+          "note": "project_id column"
+        },
+        {
+          "scope": "backend/migrations/",
+          "coupling": "tight",
+          "note": "Schema migration required"
+        }
+      ],
+      "impact_scope": "subsystem",
+      "change_cost": "medium",
+      "superseded_by": "D-005",
+      "informed_by": [],
+      "triggered_by": null
+    },
+    {
+      "id": "D-005",
+      "question": "How should tasks be associated with multiple projects?",
+      "status": "decided",
+      "decided_at": "2026-05-20",
+      "notes": "D-004 assumption broke when enterprise requirement came in. Went with a join table this time — the originally-rejected option. The initial rejection reason (over-engineered for MVP) is no longer valid now that multi-project is confirmed. Implementation not yet started.",
+      "options": [
+        {
+          "id": "A",
+          "label": "task_project join table (many-to-many)",
+          "chosen": true
+        },
+        {
+          "id": "B",
+          "label": "Array column of project_ids on task",
+          "rejected": true,
+          "rejection_reason": "Cannot enforce FK constraints; makes cross-project queries harder"
+        }
+      ],
+      "chosen_option": "A",
+      "assumptions": [
+        {
+          "id": "A1",
+          "text": "Tasks can belong to many projects but the typical count is low (<10)",
+          "status": "unvalidated",
+          "note": null
+        },
+        {
+          "id": "A2",
+          "text": "Queries will filter by project more often than by task",
+          "status": "unvalidated",
+          "note": null
+        }
+      ],
+      "affects": [
+        {
+          "scope": "backend/models/",
+          "coupling": "tight",
+          "note": "New TaskProject model, remove project_id from Task"
+        },
+        {
+          "scope": "backend/migrations/",
+          "coupling": "tight",
+          "note": "Data migration needed to move existing FKs to join table"
+        },
+        {
+          "scope": "backend/services/task_service.py",
+          "coupling": "medium",
+          "note": "All task queries need updating to join through new table"
+        },
+        {
+          "scope": "frontend/src/",
+          "coupling": "loose",
+          "note": "UI already supports multiple project badges; API shape change needed"
+        }
+      ],
+      "impact_scope": "subsystem",
+      "change_cost": "high",
+      "superseded_by": null,
+      "informed_by": [],
+      "triggered_by": "D-004"
+    }
+  ]
+}
