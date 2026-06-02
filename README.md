@@ -26,11 +26,19 @@ Global install activates the skill for every Claude Code session. `decisions.jso
 
 | Command | What it does |
 |---|---|
-| `/brickbb init` | Extract decisions from the current conversation and seed `decisions.json` |
+| `/brickbb init` | Extract decisions from conversations and seed `decisions.json` (see options below) |
 | `/brickbb log` | Manually log a new decision |
 | `/brickbb challenge D-001` | Mark a decision as challenged (escape hatch — normally triggered automatically) |
 | `/brickbb close D-001` | Close a decision (escape hatch — normally triggered automatically) |
 | `/brickbb status` | Show all open, decided, and challenged decisions |
+
+**`/brickbb init` options** (default: current conversation + up to 2 most recent within last 7 days):
+```
+/brickbb init                  # default
+/brickbb init --last 5         # current + 5 most recent conversations
+/brickbb init --days 30        # current + all conversations within last 30 days
+```
+Scanning beyond the default will prompt a token cost warning before proceeding.
 
 Most interaction is passive — Claude watches the conversation and acts without being called:
 

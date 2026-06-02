@@ -16,11 +16,15 @@ If the file does not exist, prompt the user to run `/brickbb init`.
 ### /brickbb init
 
 1. If `decisions.json` already exists, refuse to overwrite — tell the user to use `/brickbb log` instead.
-2. Scan the current conversation from the beginning. Extract every decision that was actually made: choices between approaches, technology selections, architectural tradeoffs, rejected alternatives with reasons. Focus on decisions with real consequences — not trivial details.
-3. For each extracted decision, draft a full entry: question, options considered (including rejected ones with rejection reasons), chosen option, assumptions that must hold, affected areas, and estimated `change_cost`. Pull the reasoning directly from what was said in the conversation — do not invent it.
-4. Present all drafts at once. For each, ask: confirm, skip, or edit.
-5. Write `decisions.json` with confirmed entries, IDs starting at `D-001`.
-6. Do NOT scan git history. Do NOT infer decisions from file structure — only from what was explicitly discussed.
+2. Collect conversations to scan:
+   - Always include the current conversation.
+   - Find previous transcripts at `~/.claude/projects/<project-hash>/*.jsonl`. Sort by modification time descending. Default: up to 2 most recent files within the last 7 days. User can override with `--last N` (number of conversations) or `--days N` (time window). If the user specifies more than the default, warn once: "Scanning N conversations may use significant tokens — proceed?" then wait for confirmation.
+   - For each transcript, read only the user-turn lines (where `"role":"user"`) to reduce token cost.
+3. Extract every decision that was actually made across all scanned conversations: choices between approaches, technology selections, architectural tradeoffs, rejected alternatives with reasons. Focus on decisions with real consequences — not trivial details.
+4. For each extracted decision, draft a full entry: question, options considered (including rejected ones with rejection reasons), chosen option, assumptions that must hold, affected areas, and estimated `change_cost`. Pull the reasoning directly from what was said — do not invent it.
+5. Present all drafts at once. For each, ask: confirm, skip, or edit.
+6. Write `decisions.json` with confirmed entries, IDs starting at `D-001`.
+7. Do NOT scan git history. Do NOT infer decisions from file structure — only from what was explicitly discussed.
 
 ### /brickbb log
 
