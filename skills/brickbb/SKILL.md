@@ -1,28 +1,28 @@
-# Skill: adr-track (brick-by-brick)
+# Skill: brickbb (brick-by-brick)
 
-**Trigger:** User types `/adr [command]`, or during normal coding when Claude detects an architectural decision point.
+**Trigger:** User types `/brickbb [command]`, or during normal coding when Claude detects an architectural decision point.
 
 ---
 
 ## Decision file
 
 All decisions live in `decisions.json` at the project root. Schema version: `"1"`.
-If the file does not exist, prompt the user to run `/adr init`.
+If the file does not exist, prompt the user to run `/brickbb init`.
 
 ---
 
 ## Commands
 
-### /adr init
+### /brickbb init
 
 1. Read `README.md`, top-level folder structure (2 levels), and key config files (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, etc.).
 2. Identify up to 5 architectural decisions already implied by the project structure and tech choices. Focus on choices with real tradeoffs — not obvious or trivial ones.
 3. For each candidate, present a short draft (question, chosen option, 1-2 assumptions, rough `change_cost`). Ask the user: confirm, skip, or edit.
 4. Collect confirmations, then write `decisions.json` with confirmed entries, IDs starting at `D-001`.
-5. If `decisions.json` already exists, refuse to overwrite — tell the user to use `/adr log` instead.
+5. If `decisions.json` already exists, refuse to overwrite — tell the user to use `/brickbb log` instead.
 6. Do NOT scan git history.
 
-### /adr log
+### /brickbb log
 
 Guide the user through logging a new decision interactively:
 
@@ -34,7 +34,7 @@ Guide the user through logging a new decision interactively:
 6. Assign the next sequential `D-NNN` ID.
 7. Append to `decisions.json`. Show the new entry before writing and ask for confirmation.
 
-### /adr challenge <D-ID>
+### /brickbb challenge <D-ID>
 
 1. Load the specified decision.
 2. Ask the user: what happened? Which assumption broke, or what new information arrived?
@@ -45,9 +45,9 @@ Guide the user through logging a new decision interactively:
    - lists this decision in `informed_by`
    - shares an affected `scope` with tight or medium coupling
    Do not auto-update them — surface them for human review.
-7. Ask whether a new decision should be proposed to replace this one. If yes, start `/adr log` flow with `triggered_by` pre-filled.
+7. Ask whether a new decision should be proposed to replace this one. If yes, start `/brickbb log` flow with `triggered_by` pre-filled.
 
-### /adr close <D-ID>
+### /brickbb close <D-ID>
 
 1. Load the specified decision.
 2. Confirm with the user: is the feature working? Are the assumptions holding?
@@ -56,7 +56,7 @@ Guide the user through logging a new decision interactively:
 5. Update `notes` with a brief closing note (what confirmed the decision was correct).
 6. Write the updated entry.
 
-### /adr status
+### /brickbb status
 
 Print a concise summary grouped by status:
 
@@ -65,7 +65,7 @@ Print a concise summary grouped by status:
 - **decided**: ID, question, `change_cost`
 - **proposed**: ID, question
 
-Do not print `closed` or `superseded` unless the user asks with `/adr status --all`.
+Do not print `closed` or `superseded` unless the user asks with `/brickbb status --all`.
 
 ---
 

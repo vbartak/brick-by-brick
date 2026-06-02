@@ -20,17 +20,17 @@ cd brick-by-brick
 ./install.sh --global
 ```
 
-Global install activates the skill for every Claude Code session. `decisions.json` is still created per-project when you run `/adr init`.
+Global install activates the skill for every Claude Code session. `decisions.json` is still created per-project when you run `/brickbb init`.
 
 ## Usage
 
 | Command | What it does |
 |---|---|
-| `/adr init` | Scan the project, propose up to 5 decisions to seed `decisions.json` |
-| `/adr log` | Interactively log a new decision |
-| `/adr challenge D-001` | Mark a decision as challenged, identify the broken assumption, cascade impact |
-| `/adr close D-001` | Close a decision after the feature ships and assumptions are validated |
-| `/adr status` | Show all open, decided, and challenged decisions |
+| `/brickbb init` | Scan the project, propose up to 5 decisions to seed `decisions.json` |
+| `/brickbb log` | Interactively log a new decision |
+| `/brickbb challenge D-001` | Mark a decision as challenged, identify the broken assumption, cascade impact |
+| `/brickbb close D-001` | Close a decision after the feature ships and assumptions are validated |
+| `/brickbb status` | Show all open, decided, and challenged decisions |
 
 Claude also prompts passively — when it detects you choosing between approaches it will offer to log the decision, and after a feature ships it will ask if any open decisions can be closed.
 

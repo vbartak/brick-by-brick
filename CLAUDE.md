@@ -15,12 +15,12 @@ Propose logging a decision when:
 Do NOT log: trivial implementation details, style choices, obvious file organization.
 
 Say: "This looks like a meaningful decision — should I log it in decisions.json?"
-If yes, run `/adr log` or propose a draft entry.
+If yes, run `/brickbb log` or propose a draft entry.
 
 ## When stuck or something breaks
 Check `decisions.json` for assumptions with status `unvalidated`.
 Say: "The assumption '[text]' in D-NNN might explain this — should we mark it invalidated?"
-If yes, run `/adr challenge`.
+If yes, run `/brickbb challenge`.
 
 ## When a feature ships
 Ask once: "D-NNN is still open — should we close it or validate any of its assumptions?"

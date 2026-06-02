@@ -22,16 +22,16 @@ else
   TARGET="$(pwd)"
 fi
 
-SKILL_SRC="${SCRIPT_DIR}/skills/adr-track/SKILL.md"
+SKILL_SRC="${SCRIPT_DIR}/skills/brickbb/SKILL.md"
 CLAUDE_MD_SRC="${SCRIPT_DIR}/CLAUDE.md"
 TEMPLATE_SRC="${SCRIPT_DIR}/schema/decisions.template.json"
 
 if [ "${GLOBAL}" = true ]; then
-  SKILL_DST="${TARGET}/skills/adr-track/SKILL.md"
+  SKILL_DST="${TARGET}/skills/brickbb/SKILL.md"
   CLAUDE_MD_DST="${TARGET}/CLAUDE.md"
   DECISIONS_DST=""  # not created globally — decisions.json is always per-project
 else
-  SKILL_DST="${TARGET}/.claude/skills/adr-track/SKILL.md"
+  SKILL_DST="${TARGET}/.claude/skills/brickbb/SKILL.md"
   CLAUDE_MD_DST="${TARGET}/CLAUDE.md"
   DECISIONS_DST="${TARGET}/decisions.json"
 fi
@@ -69,7 +69,7 @@ fi
 
 if [ "${GLOBAL}" = true ]; then
   echo "Installing brick-by-brick globally into: ${TARGET}"
-  echo "decisions.json will be created per-project when you run /adr init."
+  echo "decisions.json will be created per-project when you run /brickbb init."
 else
   echo "Installing brick-by-brick into: ${TARGET}"
 fi
@@ -112,7 +112,7 @@ fi
 echo
 if [ "${GLOBAL}" = true ]; then
   echo "Done. brick-by-brick is now active in all projects."
-  echo "Open any project in Claude Code and run /adr init to start tracking decisions."
+  echo "Open any project in Claude Code and run /brickbb init to start tracking decisions."
 else
-  echo "Done. Open the project in Claude Code and run /adr init to log your first decisions."
+  echo "Done. Open the project in Claude Code and run /brickbb init to log your first decisions."
 fi
