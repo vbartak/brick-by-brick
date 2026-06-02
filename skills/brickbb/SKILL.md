@@ -15,12 +15,12 @@ If the file does not exist, prompt the user to run `/brickbb init`.
 
 ### /brickbb init
 
-1. Read `README.md`, top-level folder structure (2 levels), and key config files (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, etc.).
-2. Identify up to 5 architectural decisions already implied by the project structure and tech choices. Focus on choices with real tradeoffs — not obvious or trivial ones.
-3. For each candidate, present a short draft (question, chosen option, 1-2 assumptions, rough `change_cost`). Ask the user: confirm, skip, or edit.
-4. Collect confirmations, then write `decisions.json` with confirmed entries, IDs starting at `D-001`.
-5. If `decisions.json` already exists, refuse to overwrite — tell the user to use `/brickbb log` instead.
-6. Do NOT scan git history.
+1. If `decisions.json` already exists, refuse to overwrite — tell the user to use `/brickbb log` instead.
+2. Scan the current conversation from the beginning. Extract every decision that was actually made: choices between approaches, technology selections, architectural tradeoffs, rejected alternatives with reasons. Focus on decisions with real consequences — not trivial details.
+3. For each extracted decision, draft a full entry: question, options considered (including rejected ones with rejection reasons), chosen option, assumptions that must hold, affected areas, and estimated `change_cost`. Pull the reasoning directly from what was said in the conversation — do not invent it.
+4. Present all drafts at once. For each, ask: confirm, skip, or edit.
+5. Write `decisions.json` with confirmed entries, IDs starting at `D-001`.
+6. Do NOT scan git history. Do NOT infer decisions from file structure — only from what was explicitly discussed.
 
 ### /brickbb log
 
@@ -71,14 +71,20 @@ Do not print `closed` or `superseded` unless the user asks with `/brickbb status
 
 ## Passive behavior (during normal coding)
 
+### Logging new decisions
 Propose logging a decision when:
 - The user says "let's go with X", "I decided to use X", or "we'll use X instead".
 - The user chooses between two non-trivial implementation approaches.
-- The user gets stuck and the root cause is traceable to an earlier choice.
 
 Do NOT propose for: trivial naming choices, file organization that has one obvious answer, pure style preferences.
 
 When proposing: say "This looks like a decision worth logging — want me to add it to `decisions.json`?" then wait for confirmation before doing anything.
+
+### Detecting close opportunities
+When the user signals that a piece of work is done — phrases like "works", "that's it", "moving on", "onto the next", "done", "it's working", "let's continue with" — scan open decisions and check if any clearly maps to what just finished. If yes, ask once: "It looks like [D-NNN: question] might be resolved — should I mark it as closed?" Do not ask about decisions that are clearly unrelated to what just shipped.
+
+### Detecting challenged decisions
+Propose challenging a decision when the user says something that directly contradicts a recorded assumption — e.g. "turns out X doesn't work", "X is actually slower than we thought", "we can't do Y after all". Match the contradiction against `assumptions` text in open decisions. If a match is found, ask: "This sounds like it contradicts the assumption '[text]' in D-NNN — should I mark it as challenged?" Do not trigger on general frustration or confusion alone.
 
 ---
 

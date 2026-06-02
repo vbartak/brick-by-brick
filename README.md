@@ -26,13 +26,17 @@ Global install activates the skill for every Claude Code session. `decisions.jso
 
 | Command | What it does |
 |---|---|
-| `/brickbb init` | Scan the project, propose up to 5 decisions to seed `decisions.json` |
-| `/brickbb log` | Interactively log a new decision |
-| `/brickbb challenge D-001` | Mark a decision as challenged, identify the broken assumption, cascade impact |
-| `/brickbb close D-001` | Close a decision after the feature ships and assumptions are validated |
+| `/brickbb init` | Extract decisions from the current conversation and seed `decisions.json` |
+| `/brickbb log` | Manually log a new decision |
+| `/brickbb challenge D-001` | Mark a decision as challenged (escape hatch — normally triggered automatically) |
+| `/brickbb close D-001` | Close a decision (escape hatch — normally triggered automatically) |
 | `/brickbb status` | Show all open, decided, and challenged decisions |
 
-Claude also prompts passively — when it detects you choosing between approaches it will offer to log the decision, and after a feature ships it will ask if any open decisions can be closed.
+Most interaction is passive — Claude watches the conversation and acts without being called:
+
+- **New decision detected** — when you choose between approaches, Claude offers to log it
+- **Close detected** — when you say "works", "done", "moving on" etc., Claude checks if any open decision maps to what just finished and asks to close it
+- **Challenge detected** — when you say something that contradicts a recorded assumption, Claude flags the decision and asks to mark it challenged
 
 ## Decision lifecycle
 

@@ -17,13 +17,10 @@ Do NOT log: trivial implementation details, style choices, obvious file organiza
 Say: "This looks like a meaningful decision — should I log it in decisions.json?"
 If yes, run `/brickbb log` or propose a draft entry.
 
-## When stuck or something breaks
-Check `decisions.json` for assumptions with status `unvalidated`.
-Say: "The assumption '[text]' in D-NNN might explain this — should we mark it invalidated?"
-If yes, run `/brickbb challenge`.
+## When the user signals something is done
+Phrases like "works", "done", "moving on", "onto the next", "it's working": check open decisions for any that map to what just finished. Ask once: "It looks like [D-NNN] might be resolved — should I close it?" Only ask if there's a clear match.
 
-## When a feature ships
-Ask once: "D-NNN is still open — should we close it or validate any of its assumptions?"
-Do not ask for every decision, only the ones clearly related to what just shipped.
+## When the user contradicts a recorded assumption
+Phrases like "turns out X doesn't work", "X is slower than expected", "we can't do Y": match against assumption text in open decisions. If matched, ask: "This sounds like it contradicts the assumption '[text]' in D-NNN — should I mark it as challenged?"
 
 <!-- brick-by-brick:end -->
