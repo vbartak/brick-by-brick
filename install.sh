@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# install.sh — Install the brick-by-brick skill into a target project.
-# Usage: ./install.sh [target-project-path]
-# Default target: current working directory (where the user runs this from).
+# install.sh — Install the brick-by-brick skill.
+# Usage:
+#   ./install.sh --global              Install to ~/.claude/ (all projects)
+#   ./install.sh [target-project-path] Install into a specific project
+#   ./install.sh                       Install into current directory
 # Safe to run multiple times (idempotent).
 
 set -e
@@ -9,28 +11,43 @@ set -e
 # ── Paths ──────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET="$(cd "${1:-$(pwd)}" && pwd)"
+
+GLOBAL=false
+if [ "${1}" = "--global" ]; then
+  GLOBAL=true
+  TARGET="${HOME}/.claude"
+elif [ -n "${1}" ]; then
+  TARGET="$(cd "${1}" && pwd)"
+else
+  TARGET="$(pwd)"
+fi
 
 SKILL_SRC="${SCRIPT_DIR}/skills/adr-track/SKILL.md"
 CLAUDE_MD_SRC="${SCRIPT_DIR}/CLAUDE.md"
 TEMPLATE_SRC="${SCRIPT_DIR}/schema/decisions.template.json"
 
-SKILL_DST="${TARGET}/.claude/skills/adr-track/SKILL.md"
-CLAUDE_MD_DST="${TARGET}/CLAUDE.md"
-DECISIONS_DST="${TARGET}/decisions.json"
+if [ "${GLOBAL}" = true ]; then
+  SKILL_DST="${TARGET}/skills/adr-track/SKILL.md"
+  CLAUDE_MD_DST="${TARGET}/CLAUDE.md"
+  DECISIONS_DST=""  # not created globally — decisions.json is always per-project
+else
+  SKILL_DST="${TARGET}/.claude/skills/adr-track/SKILL.md"
+  CLAUDE_MD_DST="${TARGET}/CLAUDE.md"
+  DECISIONS_DST="${TARGET}/decisions.json"
+fi
 
 IDEMPOTENCY_MARKER="brick-by-brick:begin"
 
 # ── Validation ─────────────────────────────────────────────────────────────────
 
-if [ ! -d "${TARGET}" ]; then
+if [ "${GLOBAL}" = false ] && [ ! -d "${TARGET}" ]; then
   echo "ERROR: Target path does not exist: ${TARGET}" >&2
   exit 1
 fi
 
 if [ "${TARGET}" = "${SCRIPT_DIR}" ]; then
   echo "ERROR: Do not install into the brick-by-brick repo itself." >&2
-  echo "       Run this from your project directory: ./install.sh /path/to/your/project" >&2
+  echo "       Use --global or pass a different target path." >&2
   exit 1
 fi
 
@@ -50,7 +67,12 @@ if [ ! -f "${TEMPLATE_SRC}" ]; then
   exit 1
 fi
 
-echo "Installing brick-by-brick into: ${TARGET}"
+if [ "${GLOBAL}" = true ]; then
+  echo "Installing brick-by-brick globally into: ${TARGET}"
+  echo "decisions.json will be created per-project when you run /adr init."
+else
+  echo "Installing brick-by-brick into: ${TARGET}"
+fi
 echo
 
 # ── Step 1: Copy skill file ────────────────────────────────────────────────────
@@ -76,14 +98,21 @@ else
   echo "[ok]   CLAUDE.md updated: ${CLAUDE_MD_DST}"
 fi
 
-# ── Step 3: Create decisions.json if absent ────────────────────────────────────
+# ── Step 3: Create decisions.json if absent (project installs only) ───────────
 
-if [ -f "${DECISIONS_DST}" ]; then
-  echo "[skip] decisions.json already exists: ${DECISIONS_DST}"
-else
-  cp "${TEMPLATE_SRC}" "${DECISIONS_DST}"
-  echo "[ok]   decisions.json created: ${DECISIONS_DST}"
+if [ "${GLOBAL}" = false ]; then
+  if [ -f "${DECISIONS_DST}" ]; then
+    echo "[skip] decisions.json already exists: ${DECISIONS_DST}"
+  else
+    cp "${TEMPLATE_SRC}" "${DECISIONS_DST}"
+    echo "[ok]   decisions.json created: ${DECISIONS_DST}"
+  fi
 fi
 
 echo
-echo "Done. Open the project in Claude Code and run /adr init to log your first decisions."
+if [ "${GLOBAL}" = true ]; then
+  echo "Done. brick-by-brick is now active in all projects."
+  echo "Open any project in Claude Code and run /adr init to start tracking decisions."
+else
+  echo "Done. Open the project in Claude Code and run /adr init to log your first decisions."
+fi
